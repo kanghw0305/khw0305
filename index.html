@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>개인 헬스 & 피트니스 트래커 (v5.6 OCR Manual Control)</title>
+  <title>개인 헬스 & 피트니스 트래커 (v5.7 Intelligent Parser)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
@@ -21,9 +21,9 @@
       <div>
         <h1 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
           <span>📊</span> 헬스 & 체성분 통합 대시보드
-          <span class="px-2 py-0.5 text-xs font-extrabold rounded bg-indigo-600 text-white">v5.6 Manual OCR</span>
+          <span class="px-2 py-0.5 text-xs font-extrabold rounded bg-indigo-600 text-white">v5.7 Intelligent Parser</span>
         </h1>
-        <p class="text-sm text-slate-400 mt-1">인바디 10종 지표 및 샤오미 시계 걷기 데이터 통합 관리 (OCR 수동 조절 패널 탑재)</p>
+        <p class="text-sm text-slate-400 mt-1">인바디 10종 지표 및 샤오미 시계 걷기 데이터 통합 관리 (지능형 OCR 보정 탑재)</p>
       </div>
       <div class="flex flex-wrap items-center gap-2">
         <button type="button" onclick="document.getElementById('imageInput').click()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-xs font-bold rounded-lg transition shadow-md flex items-center gap-1.5 border border-indigo-500">
@@ -69,7 +69,7 @@
         </div>
       </div>
       <div id="debugLogContainer" class="h-36 overflow-y-auto font-mono text-[11px] text-emerald-300 space-y-1 bg-slate-950 p-3 rounded border border-slate-900 select-text">
-        <div class="text-slate-500">[시스템] 대시보드 v5.6 로드 완료. 이미지를 업로드하면 내부 OCR 스캔 로그가 기록됩니다.</div>
+        <div class="text-slate-500">[시스템] 대시보드 v5.7 로드 완료. 이미지를 업로드하면 정밀 파서가 동작합니다.</div>
       </div>
     </section>
 
@@ -426,7 +426,7 @@
     let chartInstance = null;
     let currentEditingDate = null;
     let currentObjectUrl = null;
-    let currentFileToProcess = null; // 수동 재스캔용 파일 기억 변수
+    let currentFileToProcess = null;
     
     let imageQueue = [];
     let queueTotal = 0;
@@ -1174,7 +1174,6 @@
             ctx2.imageSmoothingEnabled = true;
             ctx2.drawImage(img, sx2, sy2, sw2, sh2, 0, 0, cWeight.width, cWeight.height);
 
-            // ★ 뼈밀도 및 근육량이 위치한 하단 영역 (수동 조절 확대율 적용)
             const cBottom = document.createElement('canvas');
             const sx3 = Math.floor(img.width * 0.05);
             const sy3 = Math.floor(img.height * 0.80);
@@ -1186,7 +1185,6 @@
             ctx3.imageSmoothingEnabled = true;
             ctx3.drawImage(img, sx3, sy3, sw3, sh3, 0, 0, cBottom.width, cBottom.height);
             
-            // 이진화 필터 적용
             [ctx1, ctx2, ctx3].forEach((ctx, idx) => {
               const targetCanvas = [cScore, cWeight, cBottom][idx];
               const imgData = ctx.getImageData(0, 0, targetCanvas.width, targetCanvas.height);
@@ -1213,16 +1211,25 @@
             }
 
             let boneMass = null;
+            let bottomMuscle = null;
             const bottomText = retBottom.data.text;
+            
+            // 하단 영역 근육량 추출 시도
+            const mMatch = bottomText.match(/(\d{2}\s*[\.,]\s*\d{1,2})/);
+            if (mMatch) {
+              const val = parseFloat(mMatch[1].replace(/\s/g, '').replace(',', '.'));
+              if (val >= 40.0 && val <= 85.0) bottomMuscle = val;
+            }
+
             const bMatch = bottomText.match(/(\d\s*[\.,]\s*\d{2})/);
             if (bMatch) {
               const val = parseFloat(bMatch[1].replace(/\s/g, '').replace(',', '.'));
               if (val >= 1.5 && val <= 6.0) boneMass = val;
             }
 
-            resolve({ bodyScore, weight, boneMass });
+            resolve({ bodyScore, weight, boneMass, bottomMuscle });
           } catch (e) {
-            resolve({ bodyScore: null, weight: null, boneMass: null });
+            resolve({ bodyScore: null, weight: null, boneMass: null, bottomMuscle: null });
           }
         };
         img.src = URL.createObjectURL(file);
@@ -1252,7 +1259,7 @@
       }
 
       const file = imageQueue.shift();
-      currentFileToProcess = file; // 재스캔용 보관
+      currentFileToProcess = file;
       const currentIdx = queueTotal - imageQueue.length;
 
       if (currentObjectUrl) URL.revokeObjectURL(currentObjectUrl);
@@ -1309,7 +1316,7 @@
         if (ocrStatusMsg) ocrStatusMsg.innerText = "판독 완료!";
 
         const combinedText = rawRet.data.text + "\n" + cleanRet.data.text;
-        logToConsole(`OCR 판독 완료. 뼈밀도 결과: ${topRegions.boneMass ?? '미감지'}`, "success");
+        logToConsole(`OCR 판독 완료. 뼈밀도: ${topRegions.boneMass ?? '미감지'}`, "success");
         parseAndOpenModal(combinedText, topRegions, curr, total);
 
       } catch (err) {
@@ -1322,7 +1329,6 @@
       }
     }
 
-    // 수동 조절 슬라이더 변경 후 재스캔 버튼 클릭 시 실행
     async function reRunOCRWithManualSettings() {
       if (!currentFileToProcess) {
         showToast("재스캔할 원본 이미지가 없습니다.", "⚠️");
@@ -1343,7 +1349,10 @@
       return null;
     }
 
-    function parseAndOpenModal(text, topRegions = { bodyScore: null, weight: null, boneMass: null }, curr = 1, total = 1) {
+    /* ==========================================================================
+       [지능형 수치 추출 및 스왑 보정 파서]
+       ========================================================================== */
+    function parseAndOpenModal(text, topRegions = { bodyScore: null, weight: null, boneMass: null, bottomMuscle: null }, curr = 1, total = 1) {
       const clean = text.replace(/\r/g, "");
       const isActivity = clean.includes("Mi Fitness") || 
                          clean.includes("소모했습니다") || 
@@ -1377,6 +1386,7 @@
         const calMatch = clean.match(/(\d{2,5})\s*kcal/i);
         if (calMatch) parsed.calories = parseInt(calMatch[1].replace(/,/g, ''), 10);
       } else {
+        // 날짜 파싱
         const dMatchFull = clean.match(/(\d{4})[\.\-\/년\s]+(\d{1,2})[\.\-\/월\s]+(\d{1,2})/);
         const dMatch = clean.match(/(\d{1,2})\/(\d{1,2})/);
         if (dMatchFull) {
@@ -1389,33 +1399,19 @@
           .replace(/\d{1,2}\/\d{1,2}\s+\d{1,2}:\d{2}/g, " ")
           .replace(/[\+\-]\s*\d+\.\d+\s*kg/gi, " ");
 
+        // 바디점수
         if (topRegions && topRegions.bodyScore >= 10 && topRegions.bodyScore <= 100) {
           parsed.bodyScore = topRegions.bodyScore;
         } else {
           const bsMatch1 = textWithoutDate.match(/바디\s*점수[^\d]{0,25}([2-9]\d)/i);
           const bsMatch2 = textWithoutDate.match(/([2-9]\d)\s*(?:점|전과\s*비교)/i);
           const bsMatch3 = clean.match(/(?:바디\s*점수|^|\n)\s*([2-9]\d)\s*(?:\n|전과)/i);
-          if (bsMatch1) {
-            parsed.bodyScore = parseInt(bsMatch1[1], 10);
-          } else if (bsMatch2) {
-            parsed.bodyScore = parseInt(bsMatch2[1], 10);
-          } else if (bsMatch3) {
-            parsed.bodyScore = parseInt(bsMatch3[1], 10);
-          }
+          if (bsMatch1) parsed.bodyScore = parseInt(bsMatch1[1], 10);
+          else if (bsMatch2) parsed.bodyScore = parseInt(bsMatch2[1], 10);
+          else if (bsMatch3) parsed.bodyScore = parseInt(bsMatch3[1], 10);
         }
 
-        const kgCandidates = [];
-        for (const m of textWithoutDate.matchAll(/(\d{1,3}(?:\.\d{1,2})?)\s*kg/gi)) {
-          const v = parseFloat(m[1]);
-          if (v > 1.5) kgCandidates.push(v);
-        }
-
-        const pctCandidates = [];
-        for (const m of textWithoutDate.matchAll(/(\d{2,3}(?:\.\d{1,2})?)\s*%/g)) {
-          const norm = normalizeDecimal(m[1], 5, 85);
-          if (norm && !pctCandidates.includes(norm)) pctCandidates.push(norm);
-        }
-
+        // 체중
         if (topRegions && topRegions.weight >= 35 && topRegions.weight <= 200) {
           parsed.weight = topRegions.weight;
         } else {
@@ -1425,12 +1421,10 @@
             parsed.weight = parseFloat(wBeforeLabel[1]);
           } else if (wBeforeBmi && parseFloat(wBeforeBmi[1]) >= 35) {
             parsed.weight = parseFloat(wBeforeBmi[1]);
-          } else {
-            const wCand = kgCandidates.find(v => v >= 70 && v <= 200);
-            if (wCand) parsed.weight = Number(wCand.toFixed(2));
           }
         }
 
+        // BMI
         const bmiMatch = textWithoutDate.match(/(?:BMI|8MI|BML|BM1|B\s*M\s*I)\s*[:\.]?\s*(\d{1,3}(?:\.\d{1,2})?)/i);
         if (bmiMatch) {
           parsed.bmi = normalizeDecimal(bmiMatch[1], 12, 60);
@@ -1439,15 +1433,63 @@
           if (bmiFallback) parsed.bmi = parseFloat(bmiFallback[1]);
         }
 
-        const fatMatch = textWithoutDate.match(/체지방\s*(\d{2,3}(?:\.\d{1,2})?)\s*%/);
-        parsed.fatRate = fatMatch ? normalizeDecimal(fatMatch[1], 5, 75) : (pctCandidates[0] ?? "");
+        // 모든 % 수치 및 kg 후보군 수집
+        const pctCandidates = [];
+        for (const m of textWithoutDate.matchAll(/(\d{2,3}(?:\.\d{1,2})?)\s*%/g)) {
+          const norm = normalizeDecimal(m[1], 5, 85);
+          if (norm && !pctCandidates.includes(norm)) pctCandidates.push(norm);
+        }
 
-        const waterMatch = textWithoutDate.match(/수분\s*(\d{2,3}(?:\.\d{1,2})?)\s*%/);
-        parsed.waterRate = waterMatch ? normalizeDecimal(waterMatch[1], 30, 85) : (pctCandidates[1] ?? "");
+        const kgCandidates = [];
+        for (const m of textWithoutDate.matchAll(/(\d{1,3}(?:\.\d{1,2})?)\s*kg/gi)) {
+          const v = parseFloat(m[1]);
+          if (v > 1.5) kgCandidates.push(v);
+        }
 
-        const protMatch = textWithoutDate.match(/단백질\s*(\d{2,3}(?:\.\d{1,2})?)\s*%/);
-        parsed.proteinRate = protMatch ? normalizeDecimal(protMatch[1], 5, 40) : (pctCandidates[2] ?? "");
+        // 1) 체지방률 정밀 탐색
+        const fatMatch = textWithoutDate.match(/(?:체지방|체\s*지\s*방|지방)\s*[:\.]?\s*(\d{1,3}(?:\.\d{1,2})?)\s*%/i);
+        if (fatMatch) {
+          parsed.fatRate = normalizeDecimal(fatMatch[1], 5, 60);
+        }
 
+        // 2) 수분율 정밀 탐색
+        const waterMatch = textWithoutDate.match(/(?:수분|수\s*분|체수분)\s*[:\.]?\s*(\d{1,3}(?:\.\d{1,2})?)\s*%/i);
+        if (waterMatch) {
+          parsed.waterRate = normalizeDecimal(waterMatch[1], 25, 85);
+        }
+
+        // 3) 단백질 정밀 탐색
+        const protMatch = textWithoutDate.match(/(?:단백질|단\s*백\s*질)\s*[:\.]?\s*(\d{1,3}(?:\.\d{1,2})?)\s*%/i);
+        if (protMatch) {
+          parsed.proteinRate = normalizeDecimal(protMatch[1], 5, 35);
+        }
+
+        // Fallback: 라벨 매칭 실패 시 후보군에서 배정
+        if (!parsed.fatRate && pctCandidates.length > 0) {
+          const cand = pctCandidates.find(p => p >= 10 && p <= 40);
+          if (cand) parsed.fatRate = cand;
+        }
+        if (!parsed.waterRate && pctCandidates.length > 0) {
+          const cand = pctCandidates.find(p => p >= 40 && p <= 75 && p !== parsed.fatRate);
+          if (cand) parsed.waterRate = cand;
+        }
+        if (!parsed.proteinRate && pctCandidates.length > 0) {
+          const cand = pctCandidates.find(p => p >= 10 && p <= 25 && p !== parsed.fatRate && p !== parsed.waterRate);
+          if (cand) parsed.proteinRate = cand;
+        }
+
+        // ★ [핵심 가드] 체지방률 vs 수분율 비정상 뒤바뀜 자동 스왑(Swap) 검증
+        // 성인 신체 특성상 수분율은 45~65% 사이이며 체지방률보다 항상 높아야 정상
+        if (parsed.fatRate && parsed.waterRate) {
+          if (parsed.fatRate > parsed.waterRate && parsed.fatRate >= 40 && parsed.waterRate <= 38) {
+            logToConsole(`체지방(${parsed.fatRate}%)과 수분(${parsed.waterRate}%)의 역전 감지 -> 정상 스왑 수행`, "warn");
+            const temp = parsed.fatRate;
+            parsed.fatRate = parsed.waterRate;
+            parsed.waterRate = temp;
+          }
+        }
+
+        // 기초대사량
         const bmrRegex1 = textWithoutDate.match(/(?:기초|대사량)[^\d]{0,15}(\d[\s,\.]?\d{3})/i);
         const bmrRegex2 = textWithoutDate.match(/(\d[\s,\.]?\d{3})\s*(?:kcal|cal|kca|목표)/i);
         const bmrRegex3 = textWithoutDate.match(/\b(1[,\.\s]?\d{3}|2[,\.\s]?\d{3})\b/);
@@ -1459,26 +1501,42 @@
           }
         }
 
-        const vMatch = textWithoutDate.match(/내장\s*지방\s*(\d{1,2})/);
+        // 내장지방
+        const vMatch = textWithoutDate.match(/(?:내장\s*지방|내장)[^\d]{0,10}(\d{1,2})/i);
         if (vMatch) {
           parsed.visceralFat = parseInt(vMatch[1], 10);
-        } else {
-          const vFallback = textWithoutDate.match(/(?:kcal|대사량)[\s\S]{0,60}?(?:지방|내장)[^\d]{0,10}(\d{1,2})/i);
-          if (vFallback) parsed.visceralFat = parseInt(vFallback[1], 10);
         }
 
-        const mMatch = textWithoutDate.match(/(?:근육|근\s*육|근육량)[\s\S]{0,15}?(\d{2,4}(?:\.\d{1,2})?)/i);
+        // 근육량 정밀 매칭 (BMI 및 체중 배제)
+        const currentBmi = parsed.bmi ? parseFloat(parsed.bmi) : null;
+        const currentWeight = parsed.weight ? parseFloat(parsed.weight) : null;
+
+        const mMatch = textWithoutDate.match(/(?:근육|근\s*육|근육량)[\s\S]{0,15}?(\d{2,3}(?:\.\d{1,2})?)\s*kg/i);
         if (mMatch) {
-          parsed.muscle = normalizeDecimal(mMatch[1], 25, 90);
-        } else {
-          const mCand = kgCandidates.find(v => v >= 30 && v <= 85 && Math.abs(v - (parsed.weight || 0)) > 1.0);
+          const val = parseFloat(mMatch[1]);
+          if (val >= 35 && val <= 90 && Math.abs(val - (currentBmi || 0)) > 1.0) {
+            parsed.muscle = Number(val.toFixed(2));
+          }
+        }
+
+        if (!parsed.muscle && topRegions && topRegions.bottomMuscle) {
+          parsed.muscle = topRegions.bottomMuscle;
+        }
+
+        if (!parsed.muscle) {
+          const mCand = kgCandidates.find(v => 
+            v >= 40 && v <= 85 && 
+            Math.abs(v - (currentWeight || 0)) > 2.0 && 
+            Math.abs(v - (currentBmi || 0)) > 2.0
+          );
           if (mCand) parsed.muscle = Number(mCand.toFixed(2));
         }
 
+        // 뼈밀도
         if (topRegions && topRegions.boneMass >= 1.5 && topRegions.boneMass <= 6.0) {
           parsed.boneMass = topRegions.boneMass;
         } else {
-          const boneMatch = textWithoutDate.match(/(?:뼈밀도|밀도)\s*(\d{1,3}(?:\.\d{1,2})?)/);
+          const boneMatch = textWithoutDate.match(/(?:뼈밀도|밀도|골량)\s*(\d{1,3}(?:\.\d{1,2})?)/i);
           if (boneMatch) {
             parsed.boneMass = normalizeDecimal(boneMatch[1], 1.5, 6.0);
           } else {
@@ -1507,7 +1565,7 @@
       }
 
       document.getElementById('editModal').classList.remove('hidden');
-      logToConsole(`모달 창 오픈 (${parsed.date})`, "success");
+      logToConsole(`모달 열림 (${parsed.date}) - 체지방:${parsed.fatRate}%, 수분:${parsed.waterRate}%, 근육:${parsed.muscle}kg`, "success");
     }
 
     function closeModal() {
