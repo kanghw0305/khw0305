@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>개인 헬스 & 피트니스 트래커 (Internal OCR v5.0)</title>
+  <title>개인 헬스 & 피트니스 트래커 (v5.4 Final)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
@@ -21,55 +21,55 @@
       <div>
         <h1 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
           <span>📊</span> 헬스 & 체성분 통합 대시보드
-          <span class="px-2 py-0.5 text-xs font-extrabold rounded bg-indigo-600 text-white">v5.0 Local OCR</span>
+          <span class="px-2 py-0.5 text-xs font-extrabold rounded bg-indigo-600 text-white">v5.4 Final</span>
         </h1>
         <p class="text-sm text-slate-400 mt-1">인바디 10종 지표 및 샤오미 시계 걷기 데이터 통합 관리 (내부 OCR 엔진 탑재)</p>
       </div>
       <div class="flex flex-wrap items-center gap-2">
-        <button onclick="document.getElementById('imageInput').click()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-xs font-bold rounded-lg transition shadow-md flex items-center gap-1.5 border border-indigo-500">
+        <button type="button" onclick="document.getElementById('imageInput').click()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-xs font-bold rounded-lg transition shadow-md flex items-center gap-1.5 border border-indigo-500">
           📷 이미지 자동 기록 (내부 OCR)
         </button>
         <input type="file" id="imageInput" accept="image/*" multiple class="hidden" onchange="handleImageSelect(event)">
 
-        <button onclick="openEmptyModal()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold rounded-lg transition shadow-sm">
+        <button type="button" onclick="openEmptyModal()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold rounded-lg transition shadow-sm">
           + 직접 기록 추가
         </button>
-        <button onclick="exportJSON()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-medium rounded-lg border border-slate-700 transition" title="데이터 파일 백업">
+        <button type="button" onclick="exportJSON()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-medium rounded-lg border border-slate-700 transition" title="데이터 파일 백업">
           백업(JSON)
         </button>
-        <button onclick="document.getElementById('jsonRestoreInput').click()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-medium rounded-lg border border-slate-700 transition" title="백업 파일 불러오기">
+        <button type="button" onclick="document.getElementById('jsonRestoreInput').click()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-medium rounded-lg border border-slate-700 transition" title="백업 파일 불러오기">
           복원
         </button>
         <input type="file" id="jsonRestoreInput" accept=".json" class="hidden" onchange="importJSON(event)">
-        <button onclick="restoreSampleData()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-medium rounded-lg border border-slate-700 transition">
+        <button type="button" onclick="restoreSampleData()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-medium rounded-lg border border-slate-700 transition">
           샘플 복원
         </button>
-        <button onclick="exportCSV()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-xs font-medium rounded-lg transition">
+        <button type="button" onclick="exportCSV()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-xs font-medium rounded-lg transition">
           CSV 다운로드
         </button>
-        <button onclick="confirmClearAll()" class="px-3 py-1.5 bg-rose-600/80 hover:bg-rose-600 text-xs font-medium rounded-lg transition">
+        <button type="button" onclick="confirmClearAll()" class="px-3 py-1.5 bg-rose-600/80 hover:bg-rose-600 text-xs font-medium rounded-lg transition">
           전체 비우기
         </button>
       </div>
     </header>
 
-    <!-- 실시간 디버그 로그 콘솔 UI (요청사항 3번 반영) -->
+    <!-- 실시간 디버그 로그 콘솔 UI -->
     <section class="bg-black/95 border border-slate-700 rounded-xl p-4 space-y-2 shadow-xl">
       <div class="flex items-center justify-between border-b border-slate-800 pb-2">
         <h3 class="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
           <span>🖥️</span> 실시간 디버그 로그 콘솔 (내부 OCR 스캔 로그)
         </h3>
         <div class="flex gap-2">
-          <button onclick="downloadDebugLogs()" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-semibold rounded shadow transition">
+          <button type="button" onclick="downloadDebugLogs()" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-semibold rounded shadow transition">
             로그 TXT 다운로드 📥
           </button>
-          <button onclick="clearDebugLogs()" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-rose-400 text-[11px] rounded border border-slate-700 transition">
+          <button type="button" onclick="clearDebugLogs()" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-rose-400 text-[11px] rounded border border-slate-700 transition">
             로그 지우기 🗑️
           </button>
         </div>
       </div>
       <div id="debugLogContainer" class="h-36 overflow-y-auto font-mono text-[11px] text-emerald-300 space-y-1 bg-slate-950 p-3 rounded border border-slate-900 select-text">
-        <div class="text-slate-500">[시스템] 대시보드 v5.0 로드 완료. 이미지를 업로드하면 내부 OCR 스캔 로그가 기록됩니다.</div>
+        <div class="text-slate-500">[시스템] 대시보드 v5.4 로드 완료. 이미지를 업로드하면 내부 OCR 스캔 로그가 기록됩니다.</div>
       </div>
     </section>
 
@@ -81,11 +81,11 @@
           <span id="quickWaterTotal" class="text-xs font-semibold text-white bg-sky-900/50 px-2 py-0.5 rounded-full">0 ml</span>
         </div>
         <div class="flex flex-wrap gap-2">
-          <button onclick="addWater(250)" class="flex-1 py-2 bg-slate-700 hover:bg-sky-600 text-xs font-medium rounded-lg transition">+ 1잔 (250ml)</button>
-          <button onclick="addWater(500)" class="flex-1 py-2 bg-slate-700 hover:bg-sky-600 text-xs font-medium rounded-lg transition">+ 텀블러 (500ml)</button>
+          <button type="button" onclick="addWater(250)" class="flex-1 py-2 bg-slate-700 hover:bg-sky-600 text-xs font-medium rounded-lg transition">+ 1잔 (250ml)</button>
+          <button type="button" onclick="addWater(500)" class="flex-1 py-2 bg-slate-700 hover:bg-sky-600 text-xs font-medium rounded-lg transition">+ 텀블러 (500ml)</button>
           <div class="flex-1 flex min-w-[120px]">
             <input type="number" id="customWaterInput" placeholder="직접입력" class="w-full bg-slate-900 border border-slate-600 rounded-l-lg px-2 text-xs text-white focus:border-sky-500 outline-none">
-            <button onclick="addCustomWater()" class="px-3 bg-sky-600 hover:bg-sky-500 text-white text-xs font-medium rounded-r-lg transition">추가</button>
+            <button type="button" onclick="addCustomWater()" class="px-3 bg-sky-600 hover:bg-sky-500 text-white text-xs font-medium rounded-r-lg transition">추가</button>
           </div>
         </div>
       </div>
@@ -99,7 +99,7 @@
         </div>
         <div class="flex gap-2">
           <input type="number" id="customFoodInput" placeholder="섭취 칼로리 (예: 600)" class="flex-1 bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:border-emerald-500 outline-none">
-          <button onclick="addCustomFood()" class="px-5 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium rounded-lg transition font-bold shadow-sm">누적 ➕</button>
+          <button type="button" onclick="addCustomFood()" class="px-5 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium rounded-lg transition font-bold shadow-sm">누적 ➕</button>
         </div>
       </div>
     </section>
@@ -197,19 +197,19 @@
         </div>
       </div>
 
-      <!-- 6. 수분 섭취 달성률 & 제미나이 추천 신규 기능 (목표 달성 예상일 D-Day 카드) -->
+      <!-- 6. 수분 섭취 달성률 -->
       <div class="bg-slate-800/80 border border-slate-700/80 rounded-xl p-4 flex flex-col justify-between">
         <div class="flex items-center justify-between text-xs text-slate-400">
-          <span>✨ 목표 달성 예상일 (D-Day)</span>
-          <span id="summaryDDayBadge" class="text-[11px] font-bold text-indigo-300">계산 중...</span>
+          <span>💧 일일 수분 목표</span>
+          <span id="summaryWaterPct" class="text-[11px] font-bold text-sky-400">-</span>
         </div>
-        <div class="mt-2 flex flex-col gap-1">
+        <div class="mt-2 flex flex-col gap-1.5">
           <div class="flex items-baseline justify-between">
-            <span id="summaryDDayText" class="text-sm font-bold text-white">-</span>
-            <span id="summaryDDaySpeed" class="text-[10px] text-slate-400">-</span>
+            <span id="summaryWater" class="text-xl font-bold text-sky-300">-</span>
+            <span class="text-[10px] text-slate-500">/ 2000 ml</span>
           </div>
-          <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden mt-1">
-            <div id="ddayProgressBar" class="bg-indigo-500 h-full w-0 transition-all duration-300"></div>
+          <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden">
+            <div id="waterProgressBar" class="bg-sky-500 h-full w-0 transition-all duration-300"></div>
           </div>
         </div>
       </div>
@@ -264,7 +264,7 @@
     </section>
   </div>
 
-  <!-- 데이터 검토 및 병합 모달 (요청사항 2번: 이미지 프리뷰 및 클릭 시 확대 팝업 기능 포함) -->
+  <!-- 모달 -->
   <div id="editModal" class="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50 hidden">
     <div class="bg-slate-800 border border-slate-700 rounded-xl max-w-lg w-full p-5 space-y-4 max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between border-b border-slate-700 pb-3">
@@ -272,13 +272,13 @@
           <h3 class="font-bold text-white text-base" id="modalTitle">데이터 검토 및 병합</h3>
           <p class="text-[11px] text-slate-400" id="modalSubtitle">인식된 수치를 확인하고 필요한 경우 직접 수정한 후 저장하세요.</p>
         </div>
-        <button onclick="closeModal()" class="text-slate-400 hover:text-white text-base p-1">✕</button>
+        <button type="button" onclick="closeModal()" class="text-slate-400 hover:text-white text-base p-1">✕</button>
       </div>
 
       <!-- 업로드한 원본 이미지 프리뷰 영역 (클릭 시 새 창에서 확대) -->
       <div id="modalImageContainer" class="hidden bg-slate-900/90 border border-indigo-500/50 rounded-lg p-2 text-center">
         <p class="text-[10px] text-indigo-300 mb-1">🔍 아래 이미지를 클릭하면 새 창에서 원본 크기로 확대됩니다.</p>
-        <img id="modalImagePreview" src="" alt="업로드한 원본 이미지" onclick="expandModalImage()" class="max-h-44 mx-auto rounded border border-slate-700 object-contain cursor-pointer hover:opacity-90 transition shadow-md" title="클릭하여 이미지 확대">
+        <img id="modalImagePreview" src="" alt="업로드한 원본 이미지" onclick="expandModalImage()" class="max-h-44 mx-auto rounded border border-slate-700 object-contain cursor-pointer hover:opacity-95 transition shadow-md" title="클릭하여 이미지 확대">
       </div>
 
       <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs" id="modalForm">
@@ -351,8 +351,8 @@
       <div class="flex justify-between items-center pt-3 border-t border-slate-700">
         <span id="queueStatus" class="text-xs text-indigo-400 font-medium"></span>
         <div class="flex gap-2">
-          <button onclick="skipModalData()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs rounded text-slate-300 transition">건너뛰기</button>
-          <button onclick="saveModalData()" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold rounded text-white transition">저장 및 다음</button>
+          <button type="button" onclick="skipModalData()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs rounded text-slate-300 transition">건너뛰기</button>
+          <button type="button" onclick="saveModalData()" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold rounded text-white transition">저장 및 다음</button>
         </div>
       </div>
     </div>
@@ -369,8 +369,8 @@
         정말로 모든 기록을 삭제하시겠습니까?<br>삭제 후에는 복구할 수 없습니다.
       </p>
       <div class="flex justify-end gap-2 pt-2">
-        <button onclick="closeConfirmDialog()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs rounded text-slate-300 transition">취소</button>
-        <button id="confirmActionBtn" class="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-500 text-xs font-semibold rounded text-white transition">삭제하기</button>
+        <button type="button" onclick="closeConfirmDialog()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs rounded text-slate-300 transition">취소</button>
+        <button type="button" id="confirmActionBtn" class="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-500 text-xs font-semibold rounded text-white transition">삭제하기</button>
       </div>
     </div>
   </div>
@@ -415,7 +415,6 @@
     let imageQueue = [];
     let queueTotal = 0;
 
-    // ★ 요청사항 3번: 실시간 로그 시스템
     const debugLogs = [];
     function logToConsole(message, type = 'info') {
       const timestamp = new Date().toLocaleTimeString();
@@ -558,10 +557,6 @@
         document.getElementById('summaryWaterPct').innerText = '0% 달성';
         document.getElementById('summaryCalBadge').innerText = '데이터 없음';
         document.getElementById('summaryStepRangeTitle').innerText = '최근 7일 평균 걸음';
-        document.getElementById('summaryDDayBadge').innerText = '데이터 없음';
-        document.getElementById('summaryDDayText').innerText = '-';
-        document.getElementById('summaryDDaySpeed').innerText = '-';
-        document.getElementById('ddayProgressBar').style.width = '0%';
         return;
       }
 
@@ -616,45 +611,6 @@
             const pct = Math.min(100, Math.max(0, Math.round((done / totalNeed) * 100)));
             progressBar.style.width = `${pct}%`;
           }
-        }
-
-        // ★ 제미나이 추천 추가 기능: 목표 달성 D-Day 예상 계산기
-        if (weightRecords.length >= 2) {
-          const oldestW = weightRecords[0].weight;
-          const newestW = latest.weight;
-          const daysDiff = (new Date(latest.date) - new Date(weightRecords[0].date)) / (1000 * 60 * 60 * 24);
-          
-          const ddayBadge = document.getElementById('summaryDDayBadge');
-          const ddayText = document.getElementById('summaryDDayText');
-          const ddaySpeed = document.getElementById('summaryDDaySpeed');
-          const ddayBar = document.getElementById('ddayProgressBar');
-
-          if (daysDiff > 0 && oldestW !== newestW) {
-            const speedPerDay = (newestW - oldestW) / daysDiff; // kg/day (+는 증가, -는 감량)
-            const remainingKg = targetWeight - newestW; // 목표까지 남은 양
-
-            if (Math.abs(speedPerDay) < 0.001 || (speedPerDay > 0 && remainingKg > 0) || (speedPerDay < 0 && remainingKg < 0)) {
-              ddayBadge.innerText = "방향 점검 필요";
-              ddayText.innerText = "현재 속도 유지 시 정체";
-              ddaySpeed.innerText = `속도: ${speedPerDay.toFixed(2)} kg/일`;
-              ddayBar.style.width = "100%";
-            } else {
-              const daysNeeded = Math.round(Math.abs(remainingKg / speedPerDay));
-              ddayBadge.innerText = `약 ${daysNeeded}일 뒤 달성`;
-              ddayText.innerText = `목표까지 ${Math.abs(remainingKg).toFixed(1)}kg 남음`;
-              ddaySpeed.innerText = `일일 속도: ${speedPerDay.toFixed(2)}kg`;
-              ddayBar.style.width = `${Math.min(100, Math.max(10, Math.round((1 / daysNeeded) * 100 * 30)))}%`;
-            }
-          } else {
-            ddayBadge.innerText = "데이터 누적 중";
-            ddayText.innerText = "추가 기록 필요";
-            ddaySpeed.innerText = "-";
-            ddayBar.style.width = "0%";
-          }
-        } else {
-          document.getElementById('summaryDDayBadge').innerText = "기록 부족";
-          document.getElementById('summaryDDayText').innerText = "2일 이상 기록 필요";
-          document.getElementById('summaryDDaySpeed').innerText = "-";
         }
       }
 
@@ -833,6 +789,7 @@
       container.innerHTML = '';
       METRICS.forEach(m => {
         const btn = document.createElement('button');
+        btn.type = 'button';
         btn.className = `px-2.5 py-1 rounded-full text-xs font-medium border transition ${
           m.active 
             ? 'bg-slate-700 border-indigo-400 text-white shadow-sm' 
@@ -888,8 +845,8 @@
           <td class="p-2.5 font-semibold text-purple-300">${row.steps ? row.steps.toLocaleString() : '-'}</td>
           <td class="p-2.5">${row.distance ?? '-'}</td>
           <td class="p-2.5 text-center space-x-1">
-            <button onclick="event.stopPropagation(); editExistingRow('${row.date}')" class="text-sky-400 hover:text-sky-300 text-xs px-2 py-0.5 rounded bg-sky-950/40 border border-sky-800">수정</button>
-            <button onclick="event.stopPropagation(); deleteRow('${row.date}')" class="text-rose-400 hover:text-rose-300 text-xs px-2 py-0.5 rounded bg-rose-950/40 border border-rose-800">삭제</button>
+            <button type="button" onclick="event.stopPropagation(); editExistingRow('${row.date}')" class="text-sky-400 hover:text-sky-300 text-xs px-2 py-0.5 rounded bg-sky-950/40 border border-sky-800">수정</button>
+            <button type="button" onclick="event.stopPropagation(); deleteRow('${row.date}')" class="text-rose-400 hover:text-rose-300 text-xs px-2 py-0.5 rounded bg-rose-950/40 border border-rose-800">삭제</button>
           </td>
         `;
         tbody.appendChild(tr);
@@ -904,7 +861,6 @@
       document.getElementById('modalSubtitle').innerText = `${date} 기록을 수정합니다.`;
       document.getElementById('queueStatus').innerText = "";
       
-      // 기존 수정 시에는 이미지 프리뷰 숨김
       const previewContainer = document.getElementById('modalImageContainer');
       if (previewContainer) previewContainer.classList.add('hidden');
 
@@ -935,7 +891,6 @@
       document.getElementById('editModal').classList.remove('hidden');
     }
 
-    // ★ 요청사항 2번: 모달 이미지 확대 함수 (새 창에서 띄우기)
     function expandModalImage() {
       if (!currentObjectUrl) return;
       const win = window.open();
@@ -1147,7 +1102,7 @@
     }
 
     /* ==========================================================================
-       [내부 OCR 파이프라인] : Tesseract.js 기반 로컬 스캔
+       [내부 OCR 파이프라인] : Tesseract.js 기반 로컬 스캔 (하단 뼈밀도 영역 포함)
        ========================================================================== */
 
     function createCleanContrastImage(file) {
@@ -1227,8 +1182,27 @@
             }
             ctx2.putImageData(d2, 0, 0);
 
+            // ★ 뼈밀도 및 근육량이 위치한 하단 영역 크롭 스캔 추가
+            const cBottom = document.createElement('canvas');
+            const sx3 = Math.floor(img.width * 0.05);
+            const sy3 = Math.floor(img.height * 0.80);
+            const sw3 = Math.floor(img.width * 0.90);
+            const sh3 = Math.floor(img.height * 0.18);
+            cBottom.width = 300;
+            cBottom.height = Math.max(80, Math.floor(300 * (sh3 / sw3)));
+            const ctx3 = cBottom.getContext('2d');
+            ctx3.drawImage(img, sx3, sy3, sw3, sh3, 0, 0, cBottom.width, cBottom.height);
+            const d3 = ctx3.getImageData(0, 0, cBottom.width, cBottom.height);
+            for (let i = 0; i < d3.data.length; i += 4) {
+              const isW = (d3.data[i] > 175 && d3.data[i + 2] > 140);
+              const v = isW ? 0 : 255;
+              d3.data[i] = v; d3.data[i+1] = v; d3.data[i+2] = v;
+            }
+            ctx3.putImageData(d3, 0, 0);
+
             const retScore = await worker.recognize(cScore.toDataURL('image/png'));
             const retWeight = await worker.recognize(cWeight.toDataURL('image/png'));
+            const retBottom = await worker.recognize(cBottom.toDataURL('image/png'));
 
             const scoreMatch = retScore.data.text.match(/([1-9]\d)/);
             const bodyScore = scoreMatch ? parseInt(scoreMatch[1], 10) : null;
@@ -1238,9 +1212,16 @@
             if (wMatch) {
               weight = parseFloat(wMatch[1].replace(/\s/g, '').replace(',', '.'));
             }
-            resolve({ bodyScore, weight });
+
+            let boneMass = null;
+            const bMatch = retBottom.data.text.match(/(\d\s*[\.,]\s*\d{2})/);
+            if (bMatch) {
+              boneMass = parseFloat(bMatch[1].replace(/\s/g, '').replace(',', '.'));
+            }
+
+            resolve({ bodyScore, weight, boneMass });
           } catch (e) {
-            resolve({ bodyScore: null, weight: null });
+            resolve({ bodyScore: null, weight: null, boneMass: null });
           }
         };
         img.src = URL.createObjectURL(file);
@@ -1272,7 +1253,6 @@
       const file = imageQueue.shift();
       const currentIdx = queueTotal - imageQueue.length;
 
-      // ★ 요청사항 2번: 모달 내 미리보기용 Object URL 생성 및 저장
       if (currentObjectUrl) URL.revokeObjectURL(currentObjectUrl);
       currentObjectUrl = URL.createObjectURL(file);
       const previewImg = document.getElementById('modalImagePreview');
@@ -1337,7 +1317,7 @@
       return null;
     }
 
-    function parseAndOpenModal(text, topRegions = { bodyScore: null, weight: null }, curr = 1, total = 1) {
+    function parseAndOpenModal(text, topRegions = { bodyScore: null, weight: null, boneMass: null }, curr = 1, total = 1) {
       const clean = text.replace(/\r/g, "");
       const isActivity = clean.includes("Mi Fitness") || 
                          clean.includes("소모했습니다") || 
@@ -1469,12 +1449,16 @@
           if (mCand) parsed.muscle = Number(mCand.toFixed(2));
         }
 
-        const boneMatch = textWithoutDate.match(/(?:뼈밀도|밀도)\s*(\d{1,3}(?:\.\d{1,2})?)/);
-        if (boneMatch) {
-          parsed.boneMass = normalizeDecimal(boneMatch[1], 1.5, 6.0);
+        if (topRegions && topRegions.boneMass >= 1.5 && topRegions.boneMass <= 6.0) {
+          parsed.boneMass = topRegions.boneMass;
         } else {
-          const bCand = kgCandidates.find(v => v >= 1.5 && v <= 6.0);
-          if (bCand) parsed.boneMass = Number(bCand.toFixed(2));
+          const boneMatch = textWithoutDate.match(/(?:뼈밀도|밀도)\s*(\d{1,3}(?:\.\d{1,2})?)/);
+          if (boneMatch) {
+            parsed.boneMass = normalizeDecimal(boneMatch[1], 1.5, 6.0);
+          } else {
+            const bCand = kgCandidates.find(v => v >= 1.5 && v <= 6.0);
+            if (bCand) parsed.boneMass = Number(bCand.toFixed(2));
+          }
         }
       }
 
@@ -1483,7 +1467,6 @@
       document.getElementById('modalSubtitle').innerText = "인식된 수치를 확인하고 필요한 경우 직접 수정한 후 저장하세요.";
       document.getElementById('queueStatus').innerText = total > 1 ? `남은 이미지: ${total - curr}장` : "";
 
-      // ★ 동일 날짜 기존 데이터 병합 지원
       const parsedDate = parsed.date || today;
       document.getElementById('m_date').value = parsedDate;
       const existingRow = currentData.find(d => d.date === parsedDate) || {};
