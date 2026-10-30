@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>개인 헬스 & 피트니스 트래커 (v5.5 BoneMass Fixed)</title>
+  <title>개인 헬스 & 피트니스 트래커 (v5.6 OCR Manual Control)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
@@ -21,9 +21,9 @@
       <div>
         <h1 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
           <span>📊</span> 헬스 & 체성분 통합 대시보드
-          <span class="px-2 py-0.5 text-xs font-extrabold rounded bg-indigo-600 text-white">v5.5 BoneMass Fixed</span>
+          <span class="px-2 py-0.5 text-xs font-extrabold rounded bg-indigo-600 text-white">v5.6 Manual OCR</span>
         </h1>
-        <p class="text-sm text-slate-400 mt-1">인바디 10종 지표 및 샤오미 시계 걷기 데이터 통합 관리 (내부 OCR 엔진 탑재)</p>
+        <p class="text-sm text-slate-400 mt-1">인바디 10종 지표 및 샤오미 시계 걷기 데이터 통합 관리 (OCR 수동 조절 패널 탑재)</p>
       </div>
       <div class="flex flex-wrap items-center gap-2">
         <button type="button" onclick="document.getElementById('imageInput').click()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-xs font-bold rounded-lg transition shadow-md flex items-center gap-1.5 border border-indigo-500">
@@ -69,7 +69,7 @@
         </div>
       </div>
       <div id="debugLogContainer" class="h-36 overflow-y-auto font-mono text-[11px] text-emerald-300 space-y-1 bg-slate-950 p-3 rounded border border-slate-900 select-text">
-        <div class="text-slate-500">[시스템] 대시보드 v5.5 로드 완료. 이미지를 업로드하면 내부 OCR 스캔 로그가 기록됩니다.</div>
+        <div class="text-slate-500">[시스템] 대시보드 v5.6 로드 완료. 이미지를 업로드하면 내부 OCR 스캔 로그가 기록됩니다.</div>
       </div>
     </section>
 
@@ -117,7 +117,6 @@
 
     <!-- 핵심 요약 & 목표 달성 트래커 카드 -->
     <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      <!-- 1. 현재 체중 & 직전 대비 변화 -->
       <div class="bg-slate-800/80 border border-slate-700/80 rounded-xl p-4 flex flex-col justify-between">
         <div class="flex items-center justify-between text-xs text-slate-400">
           <span>현재 체중 (최근 기록)</span>
@@ -129,7 +128,6 @@
         </div>
       </div>
 
-      <!-- 2. 목표 체중 설정 및 남은 무게 -->
       <div class="bg-slate-800/80 border border-slate-700/80 rounded-xl p-4 flex flex-col justify-between">
         <div class="flex items-center justify-between text-xs text-slate-400">
           <span>🎯 목표 체중 설정</span>
@@ -144,7 +142,6 @@
         </div>
       </div>
 
-      <!-- 3. 골격근량 / 체지방률 요약 -->
       <div class="bg-slate-800/80 border border-slate-700/80 rounded-xl p-4 flex flex-col justify-between">
         <div class="flex items-center justify-between text-xs text-slate-400">
           <span>근육량 / 체지방률</span>
@@ -163,7 +160,6 @@
         </div>
       </div>
 
-      <!-- 4. 최근 7일 평균 걸음수 & 총 소모칼로리 -->
       <div class="bg-slate-800/80 border border-slate-700/80 rounded-xl p-4 flex flex-col justify-between">
         <div class="flex items-center justify-between text-xs text-slate-400">
           <span id="summaryStepRangeTitle">최근 7일 평균 걸음</span>
@@ -178,7 +174,6 @@
         </div>
       </div>
     
-      <!-- 5. 칼로리 밸런스 (오늘) -->
       <div class="bg-slate-800/80 border border-slate-700/80 rounded-xl p-4 flex flex-col justify-between">
         <div class="flex items-center justify-between text-xs text-slate-400">
           <span>칼로리 밸런스 (오늘)</span>
@@ -197,7 +192,6 @@
         </div>
       </div>
 
-      <!-- 6. 수분 섭취 달성률 -->
       <div class="bg-slate-800/80 border border-slate-700/80 rounded-xl p-4 flex flex-col justify-between">
         <div class="flex items-center justify-between text-xs text-slate-400">
           <span>💧 일일 수분 목표</span>
@@ -264,7 +258,7 @@
     </section>
   </div>
 
-  <!-- 모달 -->
+  <!-- 데이터 검토 및 OCR 수동 조절 모달 -->
   <div id="editModal" class="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50 hidden">
     <div class="bg-slate-800 border border-slate-700 rounded-xl max-w-lg w-full p-5 space-y-4 max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between border-b border-slate-700 pb-3">
@@ -275,10 +269,31 @@
         <button type="button" onclick="closeModal()" class="text-slate-400 hover:text-white text-base p-1">✕</button>
       </div>
 
-      <!-- 업로드한 원본 이미지 프리뷰 영역 (클릭 시 새 창에서 확대) -->
-      <div id="modalImageContainer" class="hidden bg-slate-900/90 border border-indigo-500/50 rounded-lg p-2 text-center">
-        <p class="text-[10px] text-indigo-300 mb-1">🔍 아래 이미지를 클릭하면 새 창에서 원본 크기로 확대됩니다.</p>
-        <img id="modalImagePreview" src="" alt="업로드한 원본 이미지" onclick="expandModalImage()" class="max-h-44 mx-auto rounded border border-slate-700 object-contain cursor-pointer hover:opacity-95 transition shadow-md" title="클릭하여 이미지 확대">
+      <!-- 업로드한 원본 이미지 프리뷰 & OCR 수동 조절 패널 -->
+      <div id="modalImageContainer" class="hidden bg-slate-900/90 border border-indigo-500/50 rounded-lg p-3 space-y-2 text-center">
+        <p class="text-[10px] text-indigo-300">🔍 아래 이미지를 클릭하면 새 창에서 원본 크기로 확대됩니다.</p>
+        <img id="modalImagePreview" src="" alt="업로드한 원본 이미지" onclick="expandModalImage()" class="max-h-36 mx-auto rounded border border-slate-700 object-contain cursor-pointer hover:opacity-95 transition shadow-md" title="클릭하여 이미지 확대">
+        
+        <!-- OCR 수동 조절 컨트롤러 영역 -->
+        <div class="bg-slate-950 p-2.5 rounded border border-slate-800 space-y-2 text-left">
+          <div class="flex justify-between items-center text-[11px]">
+            <span class="text-indigo-300 font-bold">⚙️ OCR 전처리 수동 조절</span>
+            <span id="ocrStatusMsg" class="text-emerald-400">준비됨</span>
+          </div>
+          <div class="grid grid-cols-2 gap-3 text-[11px]">
+            <div>
+              <label class="block text-slate-400 mb-0.5">확대 배율 (<span id="scaleValLabel">2.0</span>x)</label>
+              <input type="range" id="ocrScaleRange" min="1.0" max="4.0" step="0.5" value="2.0" class="w-full accent-indigo-500 cursor-pointer" oninput="document.getElementById('scaleValLabel').innerText=this.value">
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-0.5">대비 임계값 (<span id="thresholdValLabel">170</span>)</label>
+              <input type="range" id="ocrThresholdRange" min="100" max="220" step="10" value="170" class="w-full accent-indigo-500 cursor-pointer" oninput="document.getElementById('thresholdValLabel').innerText=this.value">
+            </div>
+          </div>
+          <button type="button" onclick="reRunOCRWithManualSettings()" class="w-full py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded transition shadow">
+            🔄 이 설정으로 OCR 재스캔 실행
+          </button>
+        </div>
       </div>
 
       <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs" id="modalForm">
@@ -411,6 +426,7 @@
     let chartInstance = null;
     let currentEditingDate = null;
     let currentObjectUrl = null;
+    let currentFileToProcess = null; // 수동 재스캔용 파일 기억 변수
     
     let imageQueue = [];
     let queueTotal = 0;
@@ -857,6 +873,7 @@
       const row = currentData.find(d => d.date === date);
       if (!row) return;
       currentEditingDate = date;
+      currentFileToProcess = null;
       document.getElementById('modalTitle').innerText = "기존 데이터 수정";
       document.getElementById('modalSubtitle').innerText = `${date} 기록을 수정합니다.`;
       document.getElementById('queueStatus').innerText = "";
@@ -874,6 +891,7 @@
 
     function openEmptyModal() {
       currentEditingDate = null;
+      currentFileToProcess = null;
       const today = getLocalDateString();
       document.getElementById('modalTitle').innerText = "직접 기록 추가";
       document.getElementById('modalSubtitle').innerText = "새로운 날짜의 건강 데이터를 직접 입력합니다.";
@@ -1102,10 +1120,10 @@
     }
 
     /* ==========================================================================
-       [내부 OCR 파이프라인] : Tesseract.js 기반 로컬 스캔 (하단 뼈밀도 영역 집중 크롭 보강)
+       [내부 OCR 파이프라인] : 수동 조절 슬라이더(확대율, 대비) 연동 스캔
        ========================================================================== */
 
-    function createCleanContrastImage(file) {
+    function createCleanContrastImage(file, thresholdVal = 170) {
       return new Promise((resolve, reject) => {
         const img = new Image();
         img.onload = () => {
@@ -1116,24 +1134,10 @@
           const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
           const d = imgData.data;
           
-          const isGreenBg = (d[1] > 140 && d[0] < 100);
-          const midX = Math.floor(canvas.width / 2);
-          const idx = (10 * canvas.width + midX) * 4;
-          const r = d[idx]; const g = d[idx+1]; const b = d[idx+2];
-          const isOrangeBg = (r > 200 && g > 130 && g < 220 && b < 150);
-
-          if (isGreenBg) {
-            for (let i = 0; i < d.length; i += 4) {
-              const cr = d[i];
-              const gray = Math.max(0, Math.min(255, Math.round(255 - (cr - 30) * 1.35)));
-              d[i] = gray; d[i + 1] = gray; d[i + 2] = gray;
-            }
-          } else if (isOrangeBg) {
-            for (let i = 0; i < d.length; i += 4) {
-              const br = (d[i] * 299 + d[i+1] * 587 + d[i+2] * 114) / 1000;
-              const color = br < 150 ? 0 : 255;
-              d[i] = color; d[i + 1] = color; d[i + 2] = color;
-            }
+          for (let i = 0; i < d.length; i += 4) {
+            const br = (d[i] * 299 + d[i+1] * 587 + d[i+2] * 114) / 1000;
+            const color = br < thresholdVal ? 0 : 255;
+            d[i] = color; d[i + 1] = color; d[i + 2] = color;
           }
           ctx.putImageData(imgData, 0, 0);
           canvas.toBlob(blob => resolve(blob), 'image/png');
@@ -1143,7 +1147,7 @@
       });
     }
 
-    async function recognizeTopRegions(file, worker) {
+    async function recognizeTopRegions(file, worker, scaleVal = 2.0, thresholdVal = 170) {
       return new Promise((resolve) => {
         const img = new Image();
         img.onload = async () => {
@@ -1153,53 +1157,47 @@
             const sy1 = Math.floor(img.height * 0.16);
             const sw1 = Math.floor(img.width * 0.50);
             const sh1 = Math.floor(img.height * 0.11);
-            cScore.width = 200;
-            cScore.height = Math.max(60, Math.floor(200 * (sh1 / sw1)));
+            cScore.width = Math.floor(200 * scaleVal);
+            cScore.height = Math.max(60, Math.floor(cScore.width * (sh1 / sw1)));
             const ctx1 = cScore.getContext('2d');
+            ctx1.imageSmoothingEnabled = true;
             ctx1.drawImage(img, sx1, sy1, sw1, sh1, 0, 0, cScore.width, cScore.height);
-            const d1 = ctx1.getImageData(0, 0, cScore.width, cScore.height);
-            for (let i = 0; i < d1.data.length; i += 4) {
-              const isW = (d1.data[i] > 180 && d1.data[i + 2] > 150);
-              const v = isW ? 0 : 255;
-              d1.data[i] = v; d1.data[i+1] = v; d1.data[i+2] = v;
-            }
-            ctx1.putImageData(d1, 0, 0);
 
             const cWeight = document.createElement('canvas');
             const sx2 = Math.floor(img.width * 0.05);
             const sy2 = Math.floor(img.height * 0.34);
             const sw2 = Math.floor(img.width * 0.43);
             const sh2 = Math.floor(img.height * 0.075);
-            cWeight.width = 240;
-            cWeight.height = Math.max(60, Math.floor(240 * (sh2 / sw2)));
+            cWeight.width = Math.floor(240 * scaleVal);
+            cWeight.height = Math.max(60, Math.floor(cWeight.width * (sh2 / sw2)));
             const ctx2 = cWeight.getContext('2d');
+            ctx2.imageSmoothingEnabled = true;
             ctx2.drawImage(img, sx2, sy2, sw2, sh2, 0, 0, cWeight.width, cWeight.height);
-            const d2 = ctx2.getImageData(0, 0, cWeight.width, cWeight.height);
-            for (let i = 0; i < d2.data.length; i += 4) {
-              const isW = (d2.data[i] > 175 && d2.data[i + 2] > 140);
-              const v = isW ? 0 : 255;
-              d2.data[i] = v; d2.data[i+1] = v; d2.data[i+2] = v;
-            }
-            ctx2.putImageData(d2, 0, 0);
 
-            // ★ 뼈밀도 및 근육량이 위치한 하단 영역 집중 크롭 스캔 (해상도 2배 확대 적용)
+            // ★ 뼈밀도 및 근육량이 위치한 하단 영역 (수동 조절 확대율 적용)
             const cBottom = document.createElement('canvas');
             const sx3 = Math.floor(img.width * 0.05);
-            const sy3 = Math.floor(img.height * 0.82);
+            const sy3 = Math.floor(img.height * 0.80);
             const sw3 = Math.floor(img.width * 0.90);
-            const sh3 = Math.floor(img.height * 0.16);
-            cBottom.width = 600; // 2배 확대 렌더링
-            cBottom.height = Math.max(160, Math.floor(600 * (sh3 / sw3)));
+            const sh3 = Math.floor(img.height * 0.18);
+            cBottom.width = Math.floor(350 * scaleVal);
+            cBottom.height = Math.max(90, Math.floor(cBottom.width * (sh3 / sw3)));
             const ctx3 = cBottom.getContext('2d');
             ctx3.imageSmoothingEnabled = true;
             ctx3.drawImage(img, sx3, sy3, sw3, sh3, 0, 0, cBottom.width, cBottom.height);
-            const d3 = ctx3.getImageData(0, 0, cBottom.width, cBottom.height);
-            for (let i = 0; i < d3.data.length; i += 4) {
-              const isW = (d3.data[i] > 170 && d3.data[i + 1] > 170 && d3.data[i + 2] > 170);
-              const v = isW ? 0 : 255;
-              d3.data[i] = v; d3.data[i+1] = v; d3.data[i+2] = v;
-            }
-            ctx3.putImageData(d3, 0, 0);
+            
+            // 이진화 필터 적용
+            [ctx1, ctx2, ctx3].forEach((ctx, idx) => {
+              const targetCanvas = [cScore, cWeight, cBottom][idx];
+              const imgData = ctx.getImageData(0, 0, targetCanvas.width, targetCanvas.height);
+              const d = imgData.data;
+              for (let i = 0; i < d.length; i += 4) {
+                const br = (d[i] * 299 + d[i+1] * 587 + d[i+2] * 114) / 1000;
+                const color = br < thresholdVal ? 0 : 255;
+                d[i] = color; d[i + 1] = color; d[i + 2] = color;
+              }
+              ctx.putImageData(imgData, 0, 0);
+            });
 
             const retScore = await worker.recognize(cScore.toDataURL('image/png'));
             const retWeight = await worker.recognize(cWeight.toDataURL('image/png'));
@@ -1254,6 +1252,7 @@
       }
 
       const file = imageQueue.shift();
+      currentFileToProcess = file; // 재스캔용 보관
       const currentIdx = queueTotal - imageQueue.length;
 
       if (currentObjectUrl) URL.revokeObjectURL(currentObjectUrl);
@@ -1265,25 +1264,34 @@
         previewContainer.classList.remove('hidden');
       }
 
+      const scaleVal = parseFloat(document.getElementById('ocrScaleRange').value);
+      const thresholdVal = parseInt(document.getElementById('ocrThresholdRange').value, 10);
+
+      await runOCRProcessing(file, scaleVal, thresholdVal, currentIdx, queueTotal);
+    }
+
+    async function runOCRProcessing(file, scaleVal, thresholdVal, curr = 1, total = 1) {
       const progressBox = document.getElementById('ocrProgressBox');
       const progressBar = document.getElementById('ocrProgressBar');
       const progressText = document.getElementById('ocrPercent');
       const statusText = document.getElementById('ocrStatusText');
+      const ocrStatusMsg = document.getElementById('ocrStatusMsg');
 
       progressBox.classList.remove('hidden');
+      if (ocrStatusMsg) ocrStatusMsg.innerText = "스캔 중...";
 
       const updateProgress = (pct, msg) => {
         progressBar.style.width = `${pct}%`;
         progressText.innerText = `${pct}%`;
-        statusText.innerText = `[${currentIdx}/${queueTotal}] ${msg}`;
+        statusText.innerText = `[${curr}/${total}] ${msg}`;
       };
 
       try {
         updateProgress(15, "내부 OCR 엔진 준비 중...");
-        logToConsole(`[${currentIdx}/${queueTotal}] 파일 스캔 시작: ${file.name} (${Math.round(file.size/1024)}KB)`, "info");
+        logToConsole(`파일 스캔 시작 (배율:${scaleVal}x, 임계값:${thresholdVal}): ${file.name}`, "info");
         
         const worker = await Tesseract.createWorker('kor+eng');
-        const cleanBlob = await createCleanContrastImage(file);
+        const cleanBlob = await createCleanContrastImage(file, thresholdVal);
 
         updateProgress(45, "원본 및 반전 이미지 정밀 분석 중...");
         const rawRet = await worker.recognize(file);
@@ -1292,24 +1300,39 @@
         const cleanRet = await worker.recognize(cleanBlob);
         
         updateProgress(85, "세부 수치 추출 중...");
-        const topRegions = await recognizeTopRegions(file, worker);
+        const topRegions = await recognizeTopRegions(file, worker, scaleVal, thresholdVal);
 
         await worker.terminate();
 
         updateProgress(100, "판독 완료!");
         setTimeout(() => progressBox.classList.add('hidden'), 350);
+        if (ocrStatusMsg) ocrStatusMsg.innerText = "판독 완료!";
 
         const combinedText = rawRet.data.text + "\n" + cleanRet.data.text;
-        logToConsole(`[${currentIdx}/${queueTotal}] OCR 판독 완료. 텍스트 추출 성공`, "success");
-        parseAndOpenModal(combinedText, topRegions, currentIdx, queueTotal);
+        logToConsole(`OCR 판독 완료. 뼈밀도 결과: ${topRegions.boneMass ?? '미감지'}`, "success");
+        parseAndOpenModal(combinedText, topRegions, curr, total);
 
       } catch (err) {
         console.error("OCR Error:", err);
-        logToConsole(`OCR 처리 오류 (${currentIdx}/${queueTotal}): ${err.message}`, "error");
-        showToast(`OCR 처리 오류 (${currentIdx}/${queueTotal}): ` + err.message, "⚠️");
+        logToConsole(`OCR 처리 오류: ${err.message}`, "error");
+        showToast(`OCR 처리 오류: ` + err.message, "⚠️");
         progressBox.classList.add('hidden');
+        if (ocrStatusMsg) ocrStatusMsg.innerText = "오류 발생";
         processNextQueueItem();
       }
+    }
+
+    // 수동 조절 슬라이더 변경 후 재스캔 버튼 클릭 시 실행
+    async function reRunOCRWithManualSettings() {
+      if (!currentFileToProcess) {
+        showToast("재스캔할 원본 이미지가 없습니다.", "⚠️");
+        return;
+      }
+      const scaleVal = parseFloat(document.getElementById('ocrScaleRange').value);
+      const thresholdVal = parseInt(document.getElementById('ocrThresholdRange').value, 10);
+      logToConsole(`수동 설정 재스캔 요청 (배율:${scaleVal}x, 임계값:${thresholdVal})`, "warn");
+      showToast("설정값으로 OCR을 다시 스캔합니다...", "🔄");
+      await runOCRProcessing(currentFileToProcess, scaleVal, thresholdVal, 1, 1);
     }
 
     function normalizeDecimal(val, minValid, maxValid) {
@@ -1490,6 +1513,7 @@
     function closeModal() {
       document.getElementById('editModal').classList.add('hidden');
       currentEditingDate = null;
+      currentFileToProcess = null;
       imageQueue = [];
       if (currentObjectUrl) {
         URL.revokeObjectURL(currentObjectUrl);
@@ -1500,6 +1524,7 @@
     function skipModalData() {
       document.getElementById('editModal').classList.add('hidden');
       currentEditingDate = null;
+      currentFileToProcess = null;
       showToast("현재 이미지 처리를 건너뛰었습니다.", "⏭️");
       logToConsole("사용자가 이미지 처리를 건너뜀", "warn");
       processNextQueueItem();
@@ -1541,6 +1566,7 @@
         currentData = currentData.filter(d => d.date !== currentEditingDate);
       }
       currentEditingDate = null;
+      currentFileToProcess = null;
 
       const existingIdx = currentData.findIndex(d => d.date === date);
 
