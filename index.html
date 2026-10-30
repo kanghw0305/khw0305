@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>개인 헬스 & 피트니스 트래커 (v5.4 Final)</title>
+  <title>개인 헬스 & 피트니스 트래커 (v5.5 BoneMass Fixed)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
@@ -21,7 +21,7 @@
       <div>
         <h1 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
           <span>📊</span> 헬스 & 체성분 통합 대시보드
-          <span class="px-2 py-0.5 text-xs font-extrabold rounded bg-indigo-600 text-white">v5.4 Final</span>
+          <span class="px-2 py-0.5 text-xs font-extrabold rounded bg-indigo-600 text-white">v5.5 BoneMass Fixed</span>
         </h1>
         <p class="text-sm text-slate-400 mt-1">인바디 10종 지표 및 샤오미 시계 걷기 데이터 통합 관리 (내부 OCR 엔진 탑재)</p>
       </div>
@@ -69,7 +69,7 @@
         </div>
       </div>
       <div id="debugLogContainer" class="h-36 overflow-y-auto font-mono text-[11px] text-emerald-300 space-y-1 bg-slate-950 p-3 rounded border border-slate-900 select-text">
-        <div class="text-slate-500">[시스템] 대시보드 v5.4 로드 완료. 이미지를 업로드하면 내부 OCR 스캔 로그가 기록됩니다.</div>
+        <div class="text-slate-500">[시스템] 대시보드 v5.5 로드 완료. 이미지를 업로드하면 내부 OCR 스캔 로그가 기록됩니다.</div>
       </div>
     </section>
 
@@ -1102,7 +1102,7 @@
     }
 
     /* ==========================================================================
-       [내부 OCR 파이프라인] : Tesseract.js 기반 로컬 스캔 (하단 뼈밀도 영역 포함)
+       [내부 OCR 파이프라인] : Tesseract.js 기반 로컬 스캔 (하단 뼈밀도 영역 집중 크롭 보강)
        ========================================================================== */
 
     function createCleanContrastImage(file) {
@@ -1182,19 +1182,20 @@
             }
             ctx2.putImageData(d2, 0, 0);
 
-            // ★ 뼈밀도 및 근육량이 위치한 하단 영역 크롭 스캔 추가
+            // ★ 뼈밀도 및 근육량이 위치한 하단 영역 집중 크롭 스캔 (해상도 2배 확대 적용)
             const cBottom = document.createElement('canvas');
             const sx3 = Math.floor(img.width * 0.05);
-            const sy3 = Math.floor(img.height * 0.80);
+            const sy3 = Math.floor(img.height * 0.82);
             const sw3 = Math.floor(img.width * 0.90);
-            const sh3 = Math.floor(img.height * 0.18);
-            cBottom.width = 300;
-            cBottom.height = Math.max(80, Math.floor(300 * (sh3 / sw3)));
+            const sh3 = Math.floor(img.height * 0.16);
+            cBottom.width = 600; // 2배 확대 렌더링
+            cBottom.height = Math.max(160, Math.floor(600 * (sh3 / sw3)));
             const ctx3 = cBottom.getContext('2d');
+            ctx3.imageSmoothingEnabled = true;
             ctx3.drawImage(img, sx3, sy3, sw3, sh3, 0, 0, cBottom.width, cBottom.height);
             const d3 = ctx3.getImageData(0, 0, cBottom.width, cBottom.height);
             for (let i = 0; i < d3.data.length; i += 4) {
-              const isW = (d3.data[i] > 175 && d3.data[i + 2] > 140);
+              const isW = (d3.data[i] > 170 && d3.data[i + 1] > 170 && d3.data[i + 2] > 170);
               const v = isW ? 0 : 255;
               d3.data[i] = v; d3.data[i+1] = v; d3.data[i+2] = v;
             }
@@ -1214,9 +1215,11 @@
             }
 
             let boneMass = null;
-            const bMatch = retBottom.data.text.match(/(\d\s*[\.,]\s*\d{2})/);
+            const bottomText = retBottom.data.text;
+            const bMatch = bottomText.match(/(\d\s*[\.,]\s*\d{2})/);
             if (bMatch) {
-              boneMass = parseFloat(bMatch[1].replace(/\s/g, '').replace(',', '.'));
+              const val = parseFloat(bMatch[1].replace(/\s/g, '').replace(',', '.'));
+              if (val >= 1.5 && val <= 6.0) boneMass = val;
             }
 
             resolve({ bodyScore, weight, boneMass });
